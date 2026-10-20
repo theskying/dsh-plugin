@@ -1,0 +1,3 @@
+- insert:
+    - id: local-sidebar-chat
+      name: '@local/dsh-sidebar-chat'

@@ -1,0 +1,25 @@
+{
+  "name": "@local/dsh-sidebar-chat",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "dsh": "0.2.1-rc.2" },
+  "type": "module",
+  "description": "Independent sidebar conversations with read-only main-conversation context",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": ["index.js", "core.js", "lifecycle.js", "context.js", "client.js", "cordis.patch.yml", "locale/*.json", "icon.svg"],
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-sidebar-right", "@deepseek-ai/dsh-client-ui-conversation"]
+    }
+  },
+  "dependencies": { "zod": "4.4.3" },
+  "scripts": { "test": "node --test tests/*.test.mjs" }
+}

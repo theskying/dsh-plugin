@@ -1,0 +1,7 @@
+node_modules/
+.DS_Store
+*.tgz
+sidebar-package-*/
+.env
+.env.*
+*.log

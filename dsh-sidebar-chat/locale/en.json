@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Side conversation",
-    "description": "Open an independent conversation in the right sidebar with read-only access to the main conversation."
+    "description": "OpenAI Codex-inspired side conversations alongside your main DSH chat, with independent model and permission selection, context references, and a 12-hour lifetime."
   }
 }

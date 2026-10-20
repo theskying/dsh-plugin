@@ -2,7 +2,13 @@
 
 DSH 插件源码与安装包仓库。
 
+仓库地址：[https://github.com/theskying/dsh-plugin](https://github.com/theskying/dsh-plugin)。
+
 ## 侧边栏对话
+
+借鉴 **OpenAI Codex 的侧边栏对话体验**，在 DSH 主对话旁开启独立侧聊，支持独立选择模型与权限、引用主对话上下文及 12 小时有效期管理。侧聊内容不会自动写回主对话。
+
+这是独立的 DSH 社区插件，与 OpenAI 或 Codex 无官方关联；具体实现与限制以插件说明为准，并非 Codex 功能的完整复刻。
 
 插件位于 [dsh-sidebar-chat](./dsh-sidebar-chat/README.md)，当前版本 `0.1.0`，适配 DSH `0.2.1-rc.2`。
 

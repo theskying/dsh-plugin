@@ -4,7 +4,14 @@
   "private": true,
   "engines": { "dsh": "0.2.1-rc.2" },
   "type": "module",
-  "description": "Independent sidebar conversations with read-only main-conversation context",
+  "description": "OpenAI Codex-inspired side conversations for DSH, with independent model and permission selection, main-conversation context references, and a 12-hour lifetime.",
+  "homepage": "https://github.com/theskying/dsh-plugin#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theskying/dsh-plugin.git",
+    "directory": "dsh-sidebar-chat"
+  },
+  "bugs": { "url": "https://github.com/theskying/dsh-plugin/issues" },
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",

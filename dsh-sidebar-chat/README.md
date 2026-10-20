@@ -1,5 +1,11 @@
 # DSH 侧边栏对话
 
+借鉴 **OpenAI Codex 的侧边栏对话体验**，在 DSH 主对话旁开启独立侧聊，支持独立选择模型与权限、引用主对话上下文及 12 小时有效期管理。侧聊内容不会自动写回主对话。
+
+仓库地址：[https://github.com/theskying/dsh-plugin](https://github.com/theskying/dsh-plugin)。
+
+这是独立的 DSH 社区插件，与 OpenAI 或 Codex 无官方关联；并非 Codex 功能的完整复刻，具体能力与限制见下文。
+
 针对 DSH `0.2.1-rc.2` 的本地插件。当前版本仍为验证版，未发布市场。
 
 ## 行为

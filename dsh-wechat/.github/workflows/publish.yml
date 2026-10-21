@@ -1,0 +1,102 @@
+# Publish to npm when a version tag is pushed.
+#
+#   git tag v0.33.1 && git push origin v0.33.1
+#
+# A tag rather than a merge: publishing is the one action here that cannot be undone — an npm version
+# can be deprecated but never re-used — so it is deliberate, and the tag says which version it was.
+#
+# ## Authentication: OIDC, not a token
+#
+# There is no `NPM_TOKEN` secret and no long-lived credential anywhere in this repository. The job
+# authenticates to npm with the OIDC identity GitHub issues it, which npm verifies against a trusted
+# publisher configured on the package. `npm publish` picks this up by itself once `id-token: write` is
+# granted below.
+#
+# This replaced a token for a concrete reason: npm revoked all classic tokens in December 2025, and the
+# granular tokens that replaced them carry a 2FA bypass that npm is in the middle of restricting — the
+# package banner still says "direct publishing (Jan 2027)". A trusted publisher is what npm recommends
+# instead, and it is strictly better: there is no secret to leak, rotate, or expire.
+#
+# ## One-time setup
+#
+# On npmjs.com, for this package: Settings → Trusted Publisher → GitHub Actions, and fill in exactly
+# these values. They are matched literally; a typo shows up as a 403 at publish time and nothing else.
+#
+#   Organization or user : xcisxc29
+#   Repository           : dsh-wechat
+#   Workflow filename    : publish.yml
+#   Environment          : (leave empty — this workflow declares none)
+#
+# The workflow filename is the file's name, not its path: `publish.yml`, not `.github/workflows/publish.yml`.
+
+name: Publish
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Pack and check without publishing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  # Both jobs of the handshake: npm reads this token to confirm the workflow really is the one the
+  # package trusts.
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: pnpm install --frozen-lockfile
+
+      # The same gate as CI. Publishing an artifact that has not been verified turns a broken release
+      # into a published one, and npm will not let the version be reused.
+      - run: pnpm run build
+      - run: pnpm run typecheck
+      - run: pnpm run check:install
+      - run: pnpm test
+      - run: pnpm run pack
+      - run: pnpm run verify-pack
+
+      - name: Check the tag matches the manifest
+        shell: bash
+        run: |
+          set -eu
+          manifest=$(node -p "require('./packages/bundle/package.json').version")
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$manifest" != "$tag" ]; then
+            echo "tag $GITHUB_REF_NAME does not match package version $manifest"
+            echo "bump packages/bundle/package.json, commit, then tag again"
+            exit 1
+          fi
+          echo "tag and manifest agree on $manifest"
+
+      - name: Publish
+        shell: bash
+        run: |
+          set -eu
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry-run }}" = "true" ]; then
+            echo "dry run: everything above passed, skipping the publish"
+            exit 0
+          fi
+          # `pnpm run pack` produced the tarball; publish that exact file rather than letting npm pack
+          # a second time, so what is published is what was verified.
+          tarball=$(ls dsh-wechat-plugin-*.tgz | sort | tail -n1)
+          echo "publishing $tarball with OIDC"
+          # No NODE_AUTH_TOKEN: with `id-token: write` npm exchanges the workflow's OIDC token for a
+          # short-lived publish credential on its own.
+          npm publish "$tarball" --provenance --access public

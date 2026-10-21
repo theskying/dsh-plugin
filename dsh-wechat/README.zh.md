@@ -1,0 +1,213 @@
+# dsh-wechat-plugin
+
+[![CI](https://github.com/xcisxc29/dsh-wechat/actions/workflows/ci.yml/badge.svg)](https://github.com/xcisxc29/dsh-wechat/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/dsh-wechat-plugin.svg)](https://www.npmjs.com/package/dsh-wechat-plugin)
+[![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+
+用微信遥控 DeepSeek Harness：手机上聊天，电脑上的 DSH 干活。
+
+不需要安装 OpenClaw，也不需要公网 IP。
+
+**能在当前的 DSH 桌面端上跑** —— 针对 DSH `0.2.0-rc.2` 开发和实测，**并会随桌面端的更新持续跟进**。不少社区插件随着 DSH 升级已经悄悄不能用了；**这个是一直维护的**，每次改动都走 CI 发布。
+
+![左边是 16:16 的手机，正在读一条关于电脑时钟的答复；中间是同一时刻锁着屏的电脑；下面则是正在处理这轮对话的 DeepSeek Harness 窗口](https://raw.githubusercontent.com/xcisxc29/dsh-wechat/main/docs/images/hero.png)
+
+**上面这一张就是全部意思**：电脑**锁着屏**，手机照样在用。16:16 那一刻，手机向这台电脑要了桌面上的一个文件、又问了它的时钟——**两样都回来了**，两块屏幕的状态栏是同一分钟；下面那个窗口才是真正干活的那个，两条请求都已经答完。
+
+[English](README.md)
+
+## 功能
+
+- **文字双向**：微信消息变成 DSH 提示词，回复发回微信
+- **图片、文件、语音、视频**：双向。收到的附件落盘到会话工作区并交给 agent；agent 也能用 `send_to_wechat` 把本机文件发给你
+- **一个微信对话，多个 DSH 会话**：`/new` `/list` `/switch` `/model` `/current` `/cancel`，或者直接说「换个对话」
+- **手机上回答权限与提问**：权限申请和多选提问会发到微信，回一个数字即可。不在电脑旁也不会被卡住
+- **设置页**：DSH 的 **设置 → 微信**
+
+## 用起来是什么样
+
+|                                                                              |                                                                        |
+| :--------------------------------------------------------------------------: | :--------------------------------------------------------------------: |
+|             ![玩游戏时收到定时叫醒](https://raw.githubusercontent.com/xcisxc29/dsh-wechat/main/docs/images/proactive-push.png)             |     ![workplace 工作区里的会话推送到微信](https://raw.githubusercontent.com/xcisxc29/dsh-wechat/main/docs/images/cross-session.png)     |
+| **主动推送**：会话可以自己找你。这里「16:39 叫我」在打游戏时到了——**是 agent 找手机，不是手机找它** | **任何工作区都能推，不只是微信那个**。这个会话在 `workplace` 里，照样能推到手机。哪些对话可以，是个设置项 |
+|            ![电脑上改好文件发回来，以及从手机发文件给它看](https://raw.githubusercontent.com/xcisxc29/dsh-wechat/main/docs/images/file-roundtrip.png)            |          ![语音控制，以及 agent 发图片回来](https://raw.githubusercontent.com/xcisxc29/dsh-wechat/main/docs/images/voice-and-image.png)          |
+| **文件双向**：左图是它在电脑上改好文件再发回来；右图是你从手机发个文档问它写了什么 | **语音进来，图片出去**：不用打字，说就行。让它找张图，它会搜、下载、发给你，还标注来源 |
+|                                                                              |            ![微信设置页](https://raw.githubusercontent.com/xcisxc29/dsh-wechat/main/docs/images/settings.png)            |
+|                                                                              | **设置 → 微信**：每个对话的权限、主动推送、附件合并窗口、回复上限、指令表、日志 |
+
+## 安装
+
+**用于 DSH 桌面端** —— 需要 DSH 的工作区、工具和界面服务（也就是桌面端的标准组合），以及一台保持开机的电脑。针对 `0.2.0-rc.2` 实测，**并随桌面端更新持续跟进**。
+
+侧栏点**插件**，选**添加插件**。这个输入框接受包名、Git 地址、压缩包或本地路径。
+
+> ### 要装的名字是 `dsh-wechat-plugin`
+>
+> **仓库**叫 `dsh-wechat`，但**包名不是**：请**复制 `dsh-wechat-plugin`**，别手打，注意后面那个 `-plugin`。安装命令必须和包名完全一致。
+
+<details open>
+<summary><b>从 npm 装</b> —— 不需要额外配置</summary>
+
+```
+dsh-wechat-plugin
+```
+
+需要指定版本就带上：`dsh-wechat-plugin@0.36.5`。
+</details>
+
+<details>
+<summary><b>从 GitHub 装</b> —— 仓库自行构建，适合跟分支或固定提交</summary>
+
+```
+https://github.com/xcisxc29/dsh-wechat
+```
+
+DSH 会克隆仓库并在本地构建。**pnpm 会拦一次构建、要求你放行**——这是正常的，任何 Git 安装的插件都会这样。DSH 会告诉你该加哪个键，形如这样，写在 `~/.dsh/profiles/desktop/pnpm-workspace.yaml` 里：
+
+```yaml
+allowBuilds:
+  dsh-wechat-workspace@git+file:///…/dsh-wechat#<commit>: true
+```
+
+**大多数人不需要这个。** 想固定到某个提交、跟某个分支，或者连不上 npm 时再用。
+</details>
+
+等安装完成，点**立即启用**，然后重启 DSH。
+
+<details>
+<summary>也可以从终端装</summary>
+
+图形界面底层是 pnpm，所以同一件事也可以这样：
+
+```bash
+dsh plugin --profile desktop add dsh-wechat-plugin
+dsh plugin --profile desktop add https://github.com/xcisxc29/dsh-wechat
+```
+
+此时要自己确认组合包已启用（**立即启用**做的就是这件事）——在 `~/.dsh/profiles/desktop/package.json` 里：
+
+```json
+{
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "dsh-wechat-plugin"
+      ]
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary>用本地打好的包装</summary>
+
+```bash
+pnpm install && pnpm run dist && pnpm run pack
+# 产出 dsh-wechat-plugin-<version>.tgz
+```
+
+把这个 `.tgz` 的绝对路径粘进**添加插件**，或者交给命令行：
+
+```bash
+dsh plugin --profile desktop add /绝对路径/dsh-wechat-plugin-<version>.tgz
+```
+</details>
+
+### 开始用
+
+重启 DSH 后打开 **设置 → 微信**，点**重新扫码**，用手机微信扫出现的二维码并确认。之后在微信里发 `你好`，应该收到回复。
+
+### 可选：语音转文字
+
+微信语音是 SILK 格式。装了这个编解码器就能在本地转成 WAV：
+
+```bash
+dsh plugin --profile desktop add silk-wasm
+```
+
+不装也能用：原始 SILK 会落盘，连同服务端转写一起交给 agent。
+
+## 用法
+
+直接发消息就行，会送到 agent：
+
+```
+你好
+```
+
+下面这些指令用来控制你在跟哪个 DSH 对话讲话：
+
+| 指令 | 作用 |
+|---|---|
+| `/new` | 开一个新对话。**后面跟的字会成为标题**：`/new 修复登录` 就是开一个叫「修复登录」的对话。不跟字的话，标题取自你的第一条消息 |
+| `/list` | 直接进微信工作区那一层（每屏最多 10 条） |
+| `/list all` | 列出本机的**会话夹**（工作区），每个一行、带会话数；回复编号或名字进入 |
+| `/switch 3` | 切到那一屏的第 3 个 |
+| `/switch e716f0` | 按**行尾那个短 id** 切——跟编号无关，永远不会过期 |
+| 回复「查看其余」 | 往下翻十条（两层都能用，一直翻到底）。编号跨屏连续（1–10，然后 11–20） |
+| 直接回 `3`、名字或行尾 id | 列表就在眼前时不用打 `/switch` |
+| 引用列表消息 → `/switch 3` | 按**那一屏**的编号切，编号冻结在那条消息里 |
+| `/model` | 看有哪些模型，以及每个模型的**推理等级**，标出当前用的那个 |
+| `/model 2` | 切到列表里的第 2 个，也可以直接发模型名字 |
+| `/model 等级 高` | 换当前模型的推理等级（等级名字就是列表里印的那些） |
+| `/model 2 等级 高` | 换模型的同时指定等级 |
+| `/current` | 当前在哪个对话 |
+| `/cancel` | 中断正在跑的任务 |
+| `/help` | 这份列表 |
+
+**空格可以省**：`/switch3`、`/switch 3`、`/switch:3` 都一样。
+
+**编号会过期**：会话在你读列表时还在跑，等你回「3」时第 3 行可能已经换人了。所以每行末尾都带一个**最多 6 个字符的短 id**，直接回它或 `/switch` 都收；或者**引用那一屏的列表消息**再回编号，编号就按那条消息印的算。
+
+**列表分两层，每屏 10 条**：`/list` 直接进本工作区的会话；`/list all` 列出**会话夹**（工作区），回编号或名字进入。两层都用「查看其余」往下翻十条，**编号跨屏连续**（1–10，然后 11–20），翻到底会明说而不是继续邀请你翻。**进会话夹只改浏览位置，不改绑定**——真要切过去，还要在里面再选一个会话。
+
+**说大白话也行**：「换个对话」「看下有哪些对话」「把推理等级调高」「停一下」都认。判断意图的是 agent，不是死规则，并且切换成功或失败都会明确告诉你。
+
+## 安全性
+
+**只有你自己能碰到它。** 渠道只连腾讯官方的 iLink 网关，别的什么都不连——**没有第三方、没有自建中转**。你扫码时，机器人会**和你的微信账号做密码学绑定**：它拿到的 token 里嵌着你的 `ilink_user_id`，而服务端**只投递这一个账号发来的消息**。机器人**不是微信联系人**——没有名片、搜不到、别人加不了。
+
+**所以不存在"陌生人发条消息就能操作你电脑"这条路**，也因此**不需要白名单**：协议层本身就是一道白名单。
+
+还有两件事是真的，值得知道：
+
+**微信来的对话默认是「完全访问」，agent 不会先问你。** 这是有意的：权限询问会发到微信，然后任务就停在那里等你回答——在手机上，等于每条命令都卡在一段你已经离开的对话里。想恢复和桌面端一样的把关，把设置页的**微信对话的权限**改成「跟随 DSH 设置」。
+
+**agent 以你的身份运行。** 它能执行命令、读写文件，用的是你用户的权限——**这就是它的用途**，也意味着**你能在这台电脑上做的事，它都能做**。所以：交代完任务**扫一眼**再走，离开时**锁屏**。锁屏不影响它干活（见使用手册），但能挡住路过的人动你的桌面。
+
+**这台电脑上任何会话都能主动推送到你微信（默认开启）。** 「做完了告诉我」靠的就是它：干活的会话通常不是微信绑定的那个，没有这个能力它就没法汇报自己的结果。关掉**允许其他会话推送到微信**即可恢复更严的规则——只有绑定会话能发。
+
+## 文档
+
+| | |
+|---|---|
+| [docs/HANDBOOK-USER.md](docs/HANDBOOK-USER.md) | **使用手册**：从安装到排错，不需要技术背景 |
+| [docs/HANDBOOK-DEV.md](docs/HANDBOOK-DEV.md) | **开发手册**：开发历程、版本迭代、怎么继续改 |
+| [SETTINGS.md](SETTINGS.md) | 每条设置的实际作用 |
+| [docs/INTERNALS.md](docs/INTERNALS.md) | 协议依据、架构、两个包的区别 |
+| [docs/PROGRESS.md](docs/PROGRESS.md) | 各档功能的完成情况与验证方式 |
+| [docs/POSTMORTEM.md](docs/POSTMORTEM.md) | 开发中踩过的坑与根因 |
+| [docs/RELEASING.md](docs/RELEASING.md) | 怎么发一个版本 |
+| [examples/](examples) | 只用 `core` 的完整例子：回声机器人、主动发文件 |
+
+## 开发
+
+```bash
+pnpm install
+pnpm build              # 只编译，保留 @dsh-wechat/core 引用（pack 要靠它改写）
+pnpm run dist           # build + 内嵌 core，产出可直接加载的形态
+pnpm typecheck
+pnpm test               # 316 项
+pnpm check              # build + typecheck + test
+pnpm run pack           # 需要先 dist
+pnpm run verify-pack    # 解包、校验清单文件、按 DSH 的方式挂载一次
+```
+
+**改完 `core` 要重新 `pnpm build`。** 测试通过 `node_modules` 解析到 `lib/`，源码改了没重建时跑的是旧代码，**通过也不作数**。
+
+## 许可证
+
+MIT — 见 [LICENSE](LICENSE)。

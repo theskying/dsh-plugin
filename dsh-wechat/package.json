@@ -1,0 +1,63 @@
+{
+  "name": "dsh-wechat-workspace",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  },
+  "//": [
+    "A Git install lands here, not in packages/bundle: `pnpm add git+…` installs this repository.",
+    "So the plugin's entry points and its DSH identity are declared at the root as well, pointing into",
+    "the bundle. The npm package does not need any of this — there the bundle is the package."
+  ],
+  "main": "packages/bundle/lib/host.js",
+  "types": "packages/bundle/lib/host.d.ts",
+  "bin": {
+    "dsh-wechat-send": "packages/bundle/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./packages/bundle/lib/host.d.ts",
+      "default": "./packages/bundle/lib/host.js"
+    },
+    "./cli": "./packages/bundle/cli.js",
+    "./client": "./packages/bundle/client.js",
+    "./cordis.patch.yml": "./packages/bundle/cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./packages/bundle/cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "scripts": {
+    "prepare": "pnpm install --ignore-scripts --frozen-lockfile=false && pnpm run dist",
+    "build": "tsc -p packages/core/tsconfig.build.json && tsc -p packages/bundle/tsconfig.build.json",
+    "dist": "pnpm run build && node scripts/inline-core.mjs",
+    "typecheck": "tsc --noEmit -p packages/core/tsconfig.json && tsc --noEmit -p packages/bundle/tsconfig.json && tsc --noEmit -p examples/tsconfig.json",
+    "test": "npm run test:core && npm run test:media && npm run test:quotes && npm run test:index && npm run test:codecs && npm run test:plugin && npm run test:cli && npm run test:kind && npm run test:interactions && npm run test:client",
+    "test:core": "node --experimental-transform-types --disable-warning=ExperimentalWarning --test --experimental-test-isolation=none packages/core/tests/core.test.ts",
+    "test:media": "node --experimental-transform-types --disable-warning=ExperimentalWarning --test --experimental-test-isolation=none packages/core/tests/media.test.ts",
+    "test:quotes": "node --experimental-transform-types --disable-warning=ExperimentalWarning --test --experimental-test-isolation=none packages/core/tests/quote-cache.test.ts",
+    "test:index": "node --experimental-transform-types --disable-warning=ExperimentalWarning --test --experimental-test-isolation=none packages/core/tests/session-index.test.ts",
+    "test:codecs": "node --experimental-transform-types --disable-warning=ExperimentalWarning --test --experimental-test-isolation=none packages/core/tests/optional-deps.test.ts",
+    "test:plugin": "node --experimental-transform-types --disable-warning=ExperimentalWarning --test --experimental-test-isolation=none packages/bundle/tests/plugin.test.ts",
+    "test:cli": "node --experimental-transform-types --disable-warning=ExperimentalWarning --test --experimental-test-isolation=none packages/bundle/tests/cli.test.ts",
+    "test:kind": "node --experimental-transform-types --disable-warning=ExperimentalWarning --test --experimental-test-isolation=none packages/bundle/tests/media-kind.test.ts",
+    "test:interactions": "node --experimental-transform-types --disable-warning=ExperimentalWarning --test --experimental-test-isolation=none packages/bundle/tests/interactions.test.ts",
+    "test:client": "node --experimental-transform-types --disable-warning=ExperimentalWarning --test --experimental-test-isolation=none packages/bundle/tests/client.test.ts",
+    "check": "pnpm build && pnpm typecheck && pnpm test",
+    "pack": "node scripts/pack.mjs",
+    "verify-pack": "node --experimental-transform-types --disable-warning=ExperimentalWarning scripts/verify-pack.mjs",
+    "check:install": "node scripts/check-install-paths.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.4",
+    "typescript": "^5.9.3"
+  }
+}
